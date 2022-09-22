@@ -29,6 +29,7 @@ import { Toasts } from '../components/Toasts';
 import { UrlDropdown } from '../components/UrlDropdown';
 import { formatUpdateUrl } from '../functions/formatUpdateUrl';
 import { loadApp, loadUpdate } from '../native-modules/DevLauncherInternal';
+import { useCachedUpdates } from '../providers/CachedUpdatesProvider';
 import { useCrashReport } from '../providers/CrashReportProvider';
 import { useDevSessions } from '../providers/DevSessionsProvider';
 import { useModalStack } from '../providers/ModalStackProvider';
@@ -120,89 +121,93 @@ export function HomeScreen({
         contentContainerStyle={{
           paddingBottom: scale['48'],
         }}>
-          <ScreenContainer>
-        {crashReport && (
-          <View px="medium" py="small" mt="small">
-            <Button.ScaleOnPressContainer onPress={onCrashReportPress} bg="default" rounded="large">
-              <Row align="center" padding="medium" bg="default">
-                <Button.Text color="default">
-                  The last time you tried to open an app the development build crashed. Tap to get
-                  more information.
-                </Button.Text>
-              </Row>
-            </Button.ScaleOnPressContainer>
-          </View>
-        )}
-        <View py="large">
-          <Row px="small" align="center">
-            <View px="medium">
-              <TerminalIcon />
-            </View>
-            <Heading color="secondary">Development servers</Heading>
-
-            <Spacer.Horizontal />
-
-            {devSessions.length > 0 && (
+        <ScreenContainer>
+          {crashReport && (
+            <View px="medium" py="small" mt="small">
               <Button.ScaleOnPressContainer
-                bg="ghost"
-                rounded="full"
-                minScale={0.85}
-                onPress={onDevServerQuestionPress}>
-                <View rounded="full" padding="tiny">
-                  <InfoIcon />
-                </View>
+                onPress={onCrashReportPress}
+                bg="default"
+                rounded="large">
+                <Row align="center" padding="medium" bg="default">
+                  <Button.Text color="default">
+                    The last time you tried to open an app the development build crashed. Tap to get
+                    more information.
+                  </Button.Text>
+                </Row>
               </Button.ScaleOnPressContainer>
-            )}
-          </Row>
+            </View>
+          )}
+          <View py="large">
+            <Row px="small" align="center">
+              <View px="medium">
+                <TerminalIcon />
+              </View>
+              <Heading color="secondary">Development servers</Heading>
 
-          <Spacer.Vertical size="small" />
+              <Spacer.Horizontal />
 
-          <View px="medium">
-            <View>
-              {devSessions.length === 0 && (
-                <>
-                  <View padding="medium" bg="default" roundedTop="large">
-                    <Text>Start a local development server with:</Text>
-                    <Spacer.Vertical size="small" />
+              {devSessions.length > 0 && (
+                <Button.ScaleOnPressContainer
+                  bg="ghost"
+                  rounded="full"
+                  minScale={0.85}
+                  onPress={onDevServerQuestionPress}>
+                  <View rounded="full" padding="tiny">
+                    <InfoIcon />
+                  </View>
+                </Button.ScaleOnPressContainer>
+              )}
+            </Row>
 
-                    <View bg="secondary" border="default" rounded="medium" padding="medium">
-                      <Text type="mono" size="small">
-                        expo start --dev-client
+            <Spacer.Vertical size="small" />
+
+            <View px="medium">
+              <View>
+                {devSessions.length === 0 && (
+                  <>
+                    <View padding="medium" bg="default" roundedTop="large">
+                      <Text>Start a local development server with:</Text>
+                      <Spacer.Vertical size="small" />
+
+                      <View bg="secondary" border="default" rounded="medium" padding="medium">
+                        <Text type="mono" size="small">
+                          expo start --dev-client
+                        </Text>
+                      </View>
+
+                      <Spacer.Vertical size="small" />
+                      <Text>Then, select the local server when it appears here.</Text>
+                      <Spacer.Vertical size="small" />
+                      <Text>
+                        Alternatively, open the Camera app and scan the QR code that appears in your
+                        terminal
                       </Text>
                     </View>
+                    <Divider />
+                  </>
+                )}
 
-                    <Spacer.Vertical size="small" />
-                    <Text>Then, select the local server when it appears here.</Text>
-                    <Spacer.Vertical size="small" />
-                    <Text>
-                      Alternatively, open the Camera app and scan the QR code that appears in your
-                      terminal
-                    </Text>
-                  </View>
-                  <Divider />
-                </>
-              )}
+                {devSessions?.length > 0 && (
+                  <DevSessionList devSessions={devSessions} onDevSessionPress={onDevSessionPress} />
+                )}
 
-              {devSessions?.length > 0 && (
-                <DevSessionList devSessions={devSessions} onDevSessionPress={onDevSessionPress} />
-              )}
+                <FetchDevSessionsRow isFetching={isFetching} onRefetchPress={onRefetchPress} />
+                <Divider />
 
-              <FetchDevSessionsRow isFetching={isFetching} onRefetchPress={onRefetchPress} />
-              <Divider />
-
-              <UrlDropdown
-                onSubmit={onUrlSubmit}
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                isLoading={inputValue !== '' && inputValue === loadingUrl}
-              />
+                <UrlDropdown
+                  onSubmit={onUrlSubmit}
+                  inputValue={inputValue}
+                  setInputValue={setInputValue}
+                  isLoading={inputValue !== '' && inputValue === loadingUrl}
+                />
+              </View>
             </View>
+
+            <Spacer.Vertical size="medium" />
+            <CachedUpdates onCachedUpdatePress={onRecentAppPress} loadingUrl={loadingUrl} />
+
+            <RecentlyOpenedApps onRecentAppPress={onRecentAppPress} loadingUrl={loadingUrl} />
           </View>
-
-          <Spacer.Vertical size="medium" />
-
-          <RecentlyOpenedApps onRecentAppPress={onRecentAppPress} loadingUrl={loadingUrl} />
-        </View>
         </ScreenContainer>
       </ScrollView>
     </View>
@@ -275,6 +280,65 @@ function DevSessionList({ devSessions = [], onDevSessionPress }: DevSessionListP
           </View>
         );
       })}
+    </View>
+  );
+}
+function CachedUpdates({ onCachedUpdatePress, loadingUrl }) {
+  const { data: cachedUpdates } = useCachedUpdates();
+  console.log('CachedUpdates: cachedUpdates.length = ' + (cachedUpdates && cachedUpdates.length));
+  if (cachedUpdates.length === 0) {
+    return null;
+  }
+
+  function renderRow(app: RecentApp) {
+    console.log('CachedUpdates renderRow ' + JSON.stringify(app, null, 2));
+    const label = app.name ?? app.url;
+
+    if (app.isEASUpdate && app.updateMessage != null) {
+      return (
+        <RecentEASUpdateRow
+          label={label}
+          url={app.url}
+          message={app.updateMessage}
+          branchName={app.branchName}
+        />
+      );
+    }
+
+    return <RecentLocalPackagerRow label={label} url={app.url} />;
+  }
+
+  return (
+    <View px="medium">
+      <Row align="center" py="small">
+        <Spacer.Horizontal size="small" />
+
+        <Heading color="secondary">Cached updates</Heading>
+        <Spacer.Horizontal />
+      </Row>
+
+      <View>
+        {cachedUpdates &&
+          cachedUpdates.map((app, index, arr) => {
+            const isFirst = index === 0;
+            const isLast = index === arr.length - 1;
+            const isLoading = app.url === loadingUrl;
+
+            return (
+              <LoadingContainer key={app.id} isLoading={isLoading}>
+                <Button.ScaleOnPressContainer
+                  onPress={() => onCachedUpdatePress(app)}
+                  roundedTop={isFirst ? 'large' : 'none'}
+                  roundedBottom={isLast ? 'large' : 'none'}
+                  py="small"
+                  bg="default">
+                  {renderRow(app)}
+                </Button.ScaleOnPressContainer>
+                {!isLast && <Divider />}
+              </LoadingContainer>
+            );
+          })}
+      </View>
     </View>
   );
 }

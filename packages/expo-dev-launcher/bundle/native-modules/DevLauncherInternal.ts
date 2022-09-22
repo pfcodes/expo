@@ -12,6 +12,10 @@ export async function getRecentlyOpenedApps(): Promise<RecentApp[]> {
   return recentlyOpenedApps;
 }
 
+export async function getCachedUpdates(): Promise<RecentApp[]> {
+  return await DevLauncher.getCachedUpdates();
+}
+
 export async function clearRecentlyOpenedApps(): Promise<void> {
   return await DevLauncher.clearRecentlyOpenedApps();
 }

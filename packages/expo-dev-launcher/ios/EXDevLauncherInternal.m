@@ -151,6 +151,24 @@ RCT_EXPORT_METHOD(getRecentlyOpenedApps:(RCTPromiseResolveBlock)resolve
   resolve([[EXDevLauncherController sharedInstance] recentlyOpenedApps]);
 }
 
+RCT_EXPORT_METHOD(getCachedUpdates:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  resolve(
+    @[
+      @{
+        @"id": @"xxxxxx",
+        @"url": @"http://douglowder.com",
+        @"name": @"Fake update",
+        @"timestamp": @([NSDate date].timeIntervalSince1970 * 1000),
+        @"isEASUpdate": @(true),
+        @"branchName": @"preview",
+        @"updateMessage": @"This is fake"
+      },
+    ]
+  );
+}
+
 RCT_EXPORT_METHOD(clearRecentlyOpenedApps:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   [[EXDevLauncherController sharedInstance] clearRecentlyOpenedApps];

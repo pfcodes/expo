@@ -12,6 +12,7 @@ import { BuildInfo, CrashReport } from '../native-modules/DevLauncherInternal';
 import { DevMenuPreferencesType } from '../native-modules/DevMenuPreferences';
 import { DevSession } from '../types';
 import { BuildInfoProvider } from './BuildInfoProvider';
+import { CachedUpdatesProvider } from './CachedUpdatesProvider';
 import { CrashReportProvider } from './CrashReportProvider';
 import { DevMenuPreferencesProvider } from './DevMenuPreferencesProvider';
 import { DevSessionsProvider } from './DevSessionsProvider';
@@ -56,6 +57,7 @@ export function AppProviders({
           <DevMenuPreferencesProvider initialPreferences={initialDevMenuPreferences}>
             <DevSessionsProvider initialDevSessions={initialDevSessions}>
               <RecentlyOpenedAppsProvider initialApps={initialRecentlyOpenedApps}>
+                <CachedUpdatesProvider>
                 <BuildInfoProvider initialBuildInfo={initialBuildInfo}>
                   <CrashReportProvider initialCrashReport={initialCrashReport}>
                     <UpdatesConfigProvider>
@@ -73,6 +75,7 @@ export function AppProviders({
                     </UpdatesConfigProvider>
                   </CrashReportProvider>
                 </BuildInfoProvider>
+                </CachedUpdatesProvider>
               </RecentlyOpenedAppsProvider>
             </DevSessionsProvider>
           </DevMenuPreferencesProvider>
