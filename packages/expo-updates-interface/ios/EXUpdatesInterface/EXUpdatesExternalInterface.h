@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^EXUpdatesErrorBlock) (NSError *error);
 typedef void (^EXUpdatesUpdateSuccessBlock) (NSDictionary * _Nullable manifest);
 typedef void (^EXUpdatesQuerySuccessBlock) (NSArray<NSUUID *> * _Nonnull updateIds);
+typedef void (^EXUpdatesQueryUpdatesSuccessBlock) (NSArray<NSDictionary *> * _Nonnull updates);
 typedef void (^EXUpdatesProgressBlock) (NSUInteger successfulAssetCount, NSUInteger failedAssetCount, NSUInteger totalAssetCount);
 /**
  * Called when a manifest has been downloaded. The return value indicates whether or not to
@@ -40,6 +41,14 @@ typedef BOOL (^EXUpdatesManifestBlock) (NSDictionary *manifest);
 - (void)storedUpdateIdsWithConfiguration:(NSDictionary *)configuration
                                  success:(EXUpdatesQuerySuccessBlock)successBlock
                                    error:(EXUpdatesErrorBlock)errorBlock;
+
+/**
+ * Obtains an update manifest for an update ID already in the updates DB.
+ * The success block will pass in the update manifest
+ */
+- (void)storedUpdateManifestsWithConfiguration:(NSDictionary *)configuration
+                                       success:(EXUpdatesQueryUpdatesSuccessBlock)successBlock
+                                         error:(EXUpdatesErrorBlock)errorBlock;
 
 @end
 

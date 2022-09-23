@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^EXUpdatesAppLauncherUpdateCompletionBlock)(NSError * _Nullable error, EXUpdatesUpdate * _Nullable launchableUpdate);
 typedef void (^EXUpdatesAppLauncherQueryCompletionBlock)(NSError * _Nullable error, NSArray<NSUUID *> * _Nonnull storedUpdateIds);
+typedef void (^EXUpdatesAppLauncherQueryUpdatesCompletionBlock)(NSError * _Nullable error, NSArray<EXUpdatesUpdate *> * _Nonnull storedUpdateIds);
 
 @interface EXUpdatesAppLauncherWithDatabase : NSObject <EXUpdatesAppLauncher>
 
@@ -26,6 +27,10 @@ typedef void (^EXUpdatesAppLauncherQueryCompletionBlock)(NSError * _Nullable err
 
 + (void)storedUpdateIdsInDatabase:(EXUpdatesDatabase *)database
                        completion:(EXUpdatesAppLauncherQueryCompletionBlock)completionBlock;
+
++ (void)storedUpdatesWithConfig:(EXUpdatesConfig *)config
+                       database:(EXUpdatesDatabase *)database
+                     completion:(EXUpdatesAppLauncherQueryUpdatesCompletionBlock)completionBlock;
 @end
 
 NS_ASSUME_NONNULL_END

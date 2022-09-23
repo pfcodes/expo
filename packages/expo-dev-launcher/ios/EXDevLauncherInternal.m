@@ -10,6 +10,7 @@
 #import <EXDevLauncher-Swift.h>
 #endif
 
+#import <EXUpdatesInterface/EXUpdatesExternalInterface.h>
 @import EXDevMenu;
 
 NSString *ON_NEW_DEEP_LINK_EVENT = @"expo.modules.devlauncher.onnewdeeplink";
@@ -154,19 +155,16 @@ RCT_EXPORT_METHOD(getRecentlyOpenedApps:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(getCachedUpdates:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  resolve(
-    @[
-      @{
-        @"id": @"xxxxxx",
-        @"url": @"http://douglowder.com",
-        @"name": @"Fake update",
-        @"timestamp": @([NSDate date].timeIntervalSince1970 * 1000),
-        @"isEASUpdate": @(true),
-        @"branchName": @"preview",
-        @"updateMessage": @"This is fake"
-      },
-    ]
-  );
+  NSDictionary *updatesConfiguration = [[EXDevLauncherController sharedInstance] getUpdatesConfig];
+  if (!updatesConfiguration) {
+    resolve(@[]);
+  }
+
+  [[[EXDevLauncherController sharedInstance] updatesInterface] storedUpdateManifestsWithConfiguration:updatesConfiguration success:^(NSArray<NSDictionary *> * _Nonnull updates) {
+    resolve(updates);
+  } error:^(NSError * _Nonnull error) {
+    reject(@"ERR_DEV_LAUNCHER_CANNOT_READ_UPDATES", error.localizedDescription, error);
+  }];
 }
 
 RCT_EXPORT_METHOD(clearRecentlyOpenedApps:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)

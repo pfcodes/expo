@@ -123,6 +123,39 @@ typedef NS_ENUM(NSInteger, EXUpdatesDevLauncherErrorCode) {
   }];
 }
 
+- (void)storedUpdateManifestsWithConfiguration:(NSDictionary *)configuration
+                                       success:(EXUpdatesQueryUpdatesSuccessBlock)successBlock
+                                         error:(EXUpdatesErrorBlock)errorBlock
+{
+  EXUpdatesConfig *updatesConfiguration = [self _setup:configuration
+                                                 error:errorBlock];
+  if (updatesConfiguration == nil) {
+    successBlock(@[]);
+  }
+
+  [EXUpdatesAppLauncherWithDatabase storedUpdatesWithConfig:updatesConfiguration database:EXUpdatesAppController.sharedInstance.database completion:^(NSError * _Nullable error, NSArray<EXUpdatesUpdate *> * _Nonnull storedUpdates) {
+    if (error != nil) {
+      errorBlock(error);
+    } else {
+      NSMutableArray<NSDictionary *> *result = [NSMutableArray new];
+      for (EXUpdatesUpdate *update in storedUpdates) {
+        NSMutableDictionary *manifest = [NSMutableDictionary new];
+        manifest[@"id"] = update.updateId.UUIDString;
+        manifest[@"url"] = @"Cache";
+        manifest[@"name"] = @"Cached update";
+        manifest[@"timestamp"] = @([update.commitTime timeIntervalSince1970] * 1000);
+        manifest[@"isUpdate"] = @(YES);
+        manifest[@"branchName"] = @"preview";
+        manifest[@"updateMessage"] = @"Update message";
+        manifest[@"manifestJSON"] = update.manifestJSON;
+        [result addObject:manifest];
+      }
+      successBlock(result);
+    }
+  }];
+   
+}
+
 // Common initialization for both fetchUpdateWithConfiguration: and storedUpdateIdsWithConfiguration:
 // Sets up EXUpdatesAppController shared instance
 // Returns the updatesConfiguration
