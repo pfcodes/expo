@@ -140,14 +140,14 @@ typedef NS_ENUM(NSInteger, EXUpdatesDevLauncherErrorCode) {
       NSMutableArray<NSDictionary *> *result = [NSMutableArray new];
       for (EXUpdatesUpdate *update in storedUpdates) {
         NSMutableDictionary *manifest = [NSMutableDictionary new];
-        manifest[@"id"] = update.updateId.UUIDString;
+        manifest[@"id"] = update.manifestJSON[@"id"];
         manifest[@"url"] = @"Cache";
-        manifest[@"name"] = @"Cached update";
+        manifest[@"name"] = update.manifestJSON[@"id"];
         manifest[@"timestamp"] = @([update.commitTime timeIntervalSince1970] * 1000);
-        manifest[@"isUpdate"] = @(YES);
+        manifest[@"isEASUpdate"] = @(YES);
         manifest[@"branchName"] = @"preview";
         manifest[@"updateMessage"] = @"Update message";
-        manifest[@"manifestJSON"] = update.manifestJSON;
+        //manifest[@"manifestJSON"] = update.manifestJSON;
         [result addObject:manifest];
       }
       successBlock(result);
