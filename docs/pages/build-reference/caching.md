@@ -90,5 +90,3 @@ To disable using our CocoaPods cache server for your builds set `EAS_BUILD_DISAB
   // ...
 }
 ```
-
-<br />
