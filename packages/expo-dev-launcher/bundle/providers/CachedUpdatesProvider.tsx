@@ -54,9 +54,7 @@ export function useCachedUpdates() {
         const cachedUpdates: { [id: string]: RecentApp } = {};
 
         for (const app of apps) {
-          // index by url to eliminate multiple bundlers with the same address
-          const id = `${app.url}`;
-          app.id = id;
+          const id = app.id;
 
           const previousTimestamp = cachedUpdates[id]?.timestamp ?? 0;
 

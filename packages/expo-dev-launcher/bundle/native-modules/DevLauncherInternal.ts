@@ -28,6 +28,10 @@ export async function loadUpdate(updateUrl: string, projectUrl: string) {
   return await DevLauncher.loadUpdate(updateUrl, projectUrl);
 }
 
+export async function loadCachedUpdate(updateID: string) {
+  return await DevLauncher.loadCachedUpdate(updateID);
+}
+
 export async function getNavigationStateAsync() {
   return await DevLauncher.getNavigationState();
 }

@@ -28,7 +28,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { Toasts } from '../components/Toasts';
 import { UrlDropdown } from '../components/UrlDropdown';
 import { formatUpdateUrl } from '../functions/formatUpdateUrl';
-import { loadApp, loadUpdate } from '../native-modules/DevLauncherInternal';
+import { loadApp, loadUpdate, loadCachedUpdate } from '../native-modules/DevLauncherInternal';
 import { useCachedUpdates } from '../providers/CachedUpdatesProvider';
 import { useCrashReport } from '../providers/CrashReportProvider';
 import { useDevSessions } from '../providers/DevSessionsProvider';
@@ -90,6 +90,14 @@ export function HomeScreen({
 
   const onRefetchPress = () => {
     pollAsync({ pollAmount, pollInterval });
+  };
+
+  const onCachedUpdatePress = async (app: RecentApp) => {
+    loadCachedUpdate(app.id).catch((error) => {
+      toastStack.push(() => <Toasts.Error>{error.message}</Toasts.Error>, {
+        durationMs: 10000,
+      });
+    });
   };
 
   const onRecentAppPress = async (app: RecentApp) => {
@@ -204,7 +212,8 @@ export function HomeScreen({
             </View>
 
             <Spacer.Vertical size="medium" />
-            <CachedUpdates onCachedUpdatePress={onRecentAppPress} loadingUrl={loadingUrl} />
+
+            <CachedUpdates onCachedUpdatePress={onCachedUpdatePress} />
 
             <RecentlyOpenedApps onRecentAppPress={onRecentAppPress} loadingUrl={loadingUrl} />
           </View>
@@ -283,7 +292,8 @@ function DevSessionList({ devSessions = [], onDevSessionPress }: DevSessionListP
     </View>
   );
 }
-function CachedUpdates({ onCachedUpdatePress, loadingUrl }) {
+
+function CachedUpdates({ onCachedUpdatePress }) {
   const { data: cachedUpdates } = useCachedUpdates();
   console.log('CachedUpdates: cachedUpdates.length = ' + (cachedUpdates && cachedUpdates.length));
   if (cachedUpdates.length === 0) {
@@ -291,21 +301,16 @@ function CachedUpdates({ onCachedUpdatePress, loadingUrl }) {
   }
 
   function renderRow(app: RecentApp) {
-    console.log('CachedUpdates renderRow ' + JSON.stringify(app, null, 2));
     const label = app.name ?? app.url;
 
-    if (app.isEASUpdate && app.updateMessage != null) {
-      return (
-        <RecentEASUpdateRow
-          label={label}
-          url={app.url}
-          message={app.updateMessage}
-          branchName={app.branchName}
-        />
-      );
-    }
-
-    return <RecentLocalPackagerRow label={label} url={app.url} />;
+    return (
+      <RecentEASUpdateRow
+        label={label}
+        url={app.url}
+        message={app.updateMessage}
+        branchName={app.branchName}
+      />
+    );
   }
 
   return (
@@ -322,10 +327,9 @@ function CachedUpdates({ onCachedUpdatePress, loadingUrl }) {
           cachedUpdates.map((app, index, arr) => {
             const isFirst = index === 0;
             const isLast = index === arr.length - 1;
-            const isLoading = app.url === loadingUrl;
 
             return (
-              <LoadingContainer key={app.id} isLoading={isLoading}>
+              <LoadingContainer key={app.id} isLoading={false}>
                 <Button.ScaleOnPressContainer
                   onPress={() => onCachedUpdatePress(app)}
                   roundedTop={isFirst ? 'large' : 'none'}
