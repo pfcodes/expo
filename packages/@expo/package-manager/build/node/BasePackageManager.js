@@ -12,7 +12,7 @@ const rimraf_1 = __importDefault(require("rimraf"));
 class BasePackageManager {
     constructor({ silent, logger, ...options } = {}) {
         this.silent = !!silent;
-        this.logger = logger || console.log;
+        this.logger = logger || (!silent ? console.log : undefined);
         this.options = options;
     }
     /** Ensure the CWD is set to a non-empty string */
@@ -24,10 +24,12 @@ class BasePackageManager {
         return cwd;
     }
     runAsync(command) {
-        if (!this.silent && !this.options.ignoreStdio) {
-            this.logger?.(`> ${this.name} ${command.join(' ')}`);
+        this.logger?.(`> ${this.name} ${command.join(' ')}`);
+        const spawn = (0, spawn_async_1.default)(this.bin, command, this.options);
+        if (!this.silent) {
+            spawn.child.stderr?.pipe(process.stderr);
         }
-        return (0, spawn_async_1.default)(this.bin, command, this.options);
+        return spawn;
     }
     async versionAsync() {
         return await this.runAsync(['--version']).then(({ stdout }) => stdout.trim());
